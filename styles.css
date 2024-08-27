@@ -1,0 +1,92 @@
+body {
+    background-color: #090B18;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.reagent-counter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.reagent-block {
+    display: flex;
+    align-items: center;
+    background-color: #1C1C1C;
+    padding-right: 16px;
+    border-radius: 20px;
+    border: 2px solid #8B5E3C;
+    width: auto;
+}
+
+.reagent-icon {
+    width: 64px;
+    height: 64px;
+    margin-right: 8px;
+}
+
+.reagent-count {
+    font-family: 'Rye', cursive;
+    color: #FEF18A;
+    font-size: 36px;
+    text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.65);
+}
+
+.frame-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-right: 5px;
+    width: 410px;
+    height: 574px;
+    background-image: url('wooden_frame.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.grid-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 450px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: 5px;
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    background-image: url('default_cell.png');
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cell.special {
+    background-image: url('special_cell.png');
+    cursor: pointer; /* Указатель курсора при наведении */
+}
+
+.grid .cell img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.element-icon {
+    width: 40px; /* Настройте размер иконки */
+    height: 40px;
+}
