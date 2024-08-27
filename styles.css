@@ -8,17 +8,6 @@ body {
     height: 100vh;
 }
 
-body.no-scroll {
-    overflow: hidden;
-}
-
-.element-icon {
-    position: absolute; /* Необходимо для работы перетаскивания */
-    width: 50px; /* Размер иконки */
-    height: 50px;
-    pointer-events: none; /* Сначала игнорируем события на иконке */
-}
-
 .reagent-counter {
     display: flex;
     justify-content: center;
@@ -77,6 +66,19 @@ body.no-scroll {
     gap: 5px;
 }
 
+.element-icon {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    touch-action: none; /* Отключаем стандартное поведение для сенсорных событий */
+    z-index: 1000; /* Убедитесь, что элемент находится поверх других */
+    cursor: grab; /* Показать пользователю, что элемент можно перетащить */
+}
+
+body.no-scroll {
+    overflow: hidden;
+}
+
 .cell {
     width: 50px;
     height: 50px;
@@ -101,3 +103,4 @@ body.no-scroll {
     width: 40px; /* Настройте размер иконки */
     height: 40px;
 }
+	
