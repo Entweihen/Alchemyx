@@ -2,6 +2,11 @@ let draggedElement = null;
 let touchOffsetX = 0;
 let touchOffsetY = 0;
 
+function updateReagentCount() {
+    const countElement = document.querySelector('.reagent-count');
+    countElement.textContent = reagentCount;
+}
+
 function placeElement(element) {
     const elements = {
         pyro: 'pyro.png',
@@ -81,9 +86,12 @@ function handleTouchEnd(event) {
     document.body.style.overflow = 'auto';
 }
 
-// Назначаем обработчики событий для существующих элементов
-document.querySelectorAll('.grid .cell img').forEach(img => {
-    img.addEventListener('touchstart', handleTouchStart);
-    img.addEventListener('touchmove', handleTouchMove);
-    img.addEventListener('touchend', handleTouchEnd);
-});
+// Назначаем обработчики событий для всех элементов
+function addTouchEventListeners(element) {
+    element.addEventListener('touchstart', handleTouchStart);
+    element.addEventListener('touchmove', handleTouchMove);
+    element.addEventListener('touchend', handleTouchEnd);
+}
+
+// Инициализация всех существующих элементов
+document.querySelectorAll('.grid .cell img').forEach(addTouchEventListeners);
