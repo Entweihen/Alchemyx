@@ -8,6 +8,9 @@ const elements = {
 };
 
 let reagentCount = 500; // Начальное количество реагентов
+let draggedElement = null;
+let touchOffsetX = 0;
+let touchOffsetY = 0;
 
 function updateReagentCount() {
     const countElement = document.querySelector('.reagent-count');
@@ -31,57 +34,62 @@ function placeElement(element) {
     img.src = elements[element];
     img.className = 'element-icon';
     img.draggable = true;
-    img.addEventListener('dragstart', dragStart);
+    img.addEventListener('touchstart', handleTouchStart);
+    img.addEventListener('touchmove', handleTouchMove);
+    img.addEventListener('touchend', handleTouchEnd);
     selectedCell.appendChild(img);
 }
 
-function dragEnd(event) {
+function handleTouchStart(event) {
+    const touch = event.targetTouches[0];
+    draggedElement = event.target;
+
+    // Определение смещения нажатия от края элемента
+    touchOffsetX = touch.clientX - draggedElement.getBoundingClientRect().left;
+    touchOffsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
+
+    // Отключаем прокрутку страницы во время перетаскивания
+    document.body.classList.add('no-scroll');
+}
+
+function handleTouchMove(event) {
+    if (!draggedElement) return;
+
+    const touch = event.targetTouches[0];
+
+    // Позиционирование элемента в соответствии с движением пальца
+    draggedElement.style.position = 'absolute';
+    draggedElement.style.left = `${touch.clientX - touchOffsetX}px`;
+    draggedElement.style.top = `${touch.clientY - touchOffsetY}px`;
+}
+
+function handleTouchEnd(event) {
+    if (!draggedElement) return;
+
+    // Получаем элемент под пальцем в момент завершения касания
+    const elementBelow = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+    const dropTarget = elementBelow.closest('.cell');
+
+    if (dropTarget && !dropTarget.querySelector('img')) {
+        dropTarget.appendChild(draggedElement);
+    } else {
+        // Если нет подходящей ячейки, возвращаем элемент на его исходную позицию
+        draggedElement.style.position = '';
+        draggedElement.style.left = '';
+        draggedElement.style.top = '';
+    }
+
+    draggedElement = null;
+
     // Включаем прокрутку страницы
     document.body.classList.remove('no-scroll');
 }
 
+// Назначаем обработчики событий для существующих элементов
 document.querySelectorAll('.grid .cell img').forEach(img => {
-    img.addEventListener('dragstart', dragStart);
-    img.addEventListener('dragend', dragEnd); // Обработчик завершения перетаскивания
-});
-
-function dragStart(event) {
-    event.dataTransfer.setData('text/plain', event.target.src);
-    event.dataTransfer.setData('source-id', event.target.parentNode.dataset.id);
-
-    // Предотвращаем стандартное поведение, такое как скролл
-    event.preventDefault();
-}
-
-document.querySelectorAll('.grid .cell:not(.special)').forEach((cell, index) => {
-    cell.dataset.id = index; // Присваиваем каждой ячейке уникальный идентификатор
-
-    cell.addEventListener('dragover', event => {
-        event.preventDefault(); // Предотвращаем действие по умолчанию, чтобы позволить сброс элемента
-    });
-
-    cell.addEventListener('drop', event => {
-        event.preventDefault(); // Предотвращаем действие по умолчанию
-
-        const src = event.dataTransfer.getData('text/plain');
-        const sourceId = event.dataTransfer.getData('source-id');
-
-        if (event.target.tagName === 'IMG') return; // Не заменяем элемент, если он уже есть
-
-        const img = document.createElement('img');
-        img.src = src;
-        img.className = 'element-icon';
-        img.draggable = true;
-        img.addEventListener('dragstart', dragStart);
-
-        event.target.appendChild(img);
-
-        // Удаление элемента из исходной ячейки
-        const sourceCell = document.querySelector(`.grid .cell[data-id="${sourceId}"]`);
-        if (sourceCell && sourceCell.firstChild) {
-            sourceCell.removeChild(sourceCell.firstChild);
-        }
-    });
+    img.addEventListener('touchstart', handleTouchStart);
+    img.addEventListener('touchmove', handleTouchMove);
+    img.addEventListener('touchend', handleTouchEnd);
 });
 
 // Инициализация начального значения реагентов
