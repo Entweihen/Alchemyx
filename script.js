@@ -1,7 +1,7 @@
-let reagentCount = 500; // Начальное количество реагентов
+let reagentCount = 500; // Глобальная переменная, доступная во всех функциях
 let draggedElement = null;
-let touchOffsetX = 0;
-let touchOffsetY = 0;
+let offsetX = 0;
+let offsetY = 0;
 
 const elements = {
     pyro: 'pyro.png',
@@ -14,10 +14,13 @@ const elements = {
 
 function updateReagentCount() {
     const countElement = document.querySelector('.reagent-count');
-    countElement.textContent = reagentCount;
+    if (countElement) {
+        countElement.textContent = reagentCount;
+    }
 }
 
 function placeElement(element) {
+    console.log(`Placing element: ${element}`);
     if (reagentCount <= 0) return; // Если реагентов нет, ничего не делаем
 
     reagentCount -= 1; // Уменьшаем количество реагентов
@@ -32,9 +35,9 @@ function placeElement(element) {
     const img = document.createElement('img');
     img.src = elements[element];
     img.className = 'element-icon';
-    img.draggable = false; // Отключаем стандартное перетаскивание для мобильных устройств
+    img.style.position = 'absolute'; // Убедитесь, что элемент имеет абсолютное позиционирование
 
-    // Назначаем обработчики событий для перетаскивания
+    // Назначаем обработчики событий для перетаскивания только для нового элемента
     img.addEventListener('touchstart', handleTouchStart);
     img.addEventListener('touchmove', handleTouchMove);
     img.addEventListener('touchend', handleTouchEnd);
@@ -43,71 +46,82 @@ function placeElement(element) {
 }
 
 function handleTouchStart(event) {
-    event.preventDefault();
+    console.log('Touch start');
     const touch = event.targetTouches[0];
     draggedElement = event.target;
 
     // Определение смещения нажатия от края элемента
-    touchOffsetX = touch.clientX - draggedElement.getBoundingClientRect().left;
-    touchOffsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
+    offsetX = touch.clientX - draggedElement.getBoundingClientRect().left;
+    offsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
 
-    // Отключаем прокрутку страницы во время перетаскивания
-    document.body.style.overflow = 'hidden';
-
-    // Позиционирование элемента по координатам пальца
-    draggedElement.style.position = 'absolute';
-    draggedElement.style.left = `${touch.clientX - touchOffsetX}px`;
-    draggedElement.style.top = `${touch.clientY - touchOffsetY}px`;
-    draggedElement.style.pointerEvents = 'none'; // Игнорируем события для элемента во время перетаскивания
+    // Перемещаем элемент на верхний слой
+    draggedElement.style.zIndex = 1000;
 }
 
 function handleTouchMove(event) {
     if (!draggedElement) return;
 
-    event.preventDefault(); // Предотвращаем прокрутку экрана во время перетаскивания
-
+    console.log('Touch move');
     const touch = event.targetTouches[0];
 
     // Обновление позиции элемента по мере перемещения пальца
-    draggedElement.style.left = `${touch.clientX - touchOffsetX}px`;
-    draggedElement.style.top = `${touch.clientY - touchOffsetY}px`;
+    draggedElement.style.left = `${touch.clientX - offsetX}px`;
+    draggedElement.style.top = `${touch.clientY - offsetY}px`;
 }
 
 function handleTouchEnd(event) {
     if (!draggedElement) return;
 
+    console.log('Touch end');
     const touch = event.changedTouches[0];
-    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-    const dropTarget = elementBelow.closest('.cell');
+
+    // Определяем все ячейки
+    const cells = document.querySelectorAll('.grid .cell');
+    let dropTarget = null;
+
+    cells.forEach(cell => {
+        const rect = cell.getBoundingClientRect();
+        if (
+            touch.clientX >= rect.left &&
+            touch.clientX <= rect.right &&
+            touch.clientY >= rect.top &&
+            touch.clientY <= rect.bottom
+        ) {
+            dropTarget = cell;
+        }
+    });
+
+    console.log('Drop target:', dropTarget);
 
     if (dropTarget && !dropTarget.querySelector('img')) {
-        // Если ячейка пустая, вставляем туда элемент
+        console.log('Dropping element into a new cell');
+        dropTarget.appendChild(draggedElement);
+
+        // Обновляем позицию элемента относительно новой ячейки
         draggedElement.style.position = '';
         draggedElement.style.left = '';
         draggedElement.style.top = '';
-        draggedElement.style.pointerEvents = 'auto';
-        dropTarget.appendChild(draggedElement);
     } else {
+        console.log('Returning element to original position');
         // Возвращаем элемент на исходное место, если ячейка занята или невалидна
         draggedElement.style.position = '';
         draggedElement.style.left = '';
         draggedElement.style.top = '';
-        draggedElement.style.pointerEvents = 'auto';
     }
 
+    draggedElement.style.zIndex = ''; // Сбрасываем z-index
     draggedElement = null;
-
-    // Включаем прокрутку страницы
-    document.body.style.overflow = 'auto';
 }
 
-// Назначаем обработчики событий для базовых кнопок
-document.querySelector('.pyro-button').addEventListener('click', () => placeElement('pyro'));
-document.querySelector('.gydro-button').addEventListener('click', () => placeElement('gydro'));
-document.querySelector('.electro-button').addEventListener('click', () => placeElement('electro'));
-document.querySelector('.cryo-button').addEventListener('click', () => placeElement('cryo'));
-document.querySelector('.anemo-button').addEventListener('click', () => placeElement('anemo'));
-document.querySelector('.geo-button').addEventListener('click', () => placeElement('geo'));
+// Удаляем обработчики событий для базовых элементов
+document.querySelectorAll('.grid .cell img').forEach(img => {
+    img.removeEventListener('touchstart', handleTouchStart);
+    img.style.cursor = 'default'; // Изменяем курсор, чтобы показать, что элемент не перетаскивается
+});
+
+// Инициализация начального значения реагентов
+updateReagentCount();
+
 
 // Инициализация начального значения реагентов
 updateReagentCount();
