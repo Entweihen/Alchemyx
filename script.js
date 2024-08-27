@@ -1,6 +1,16 @@
+let reagentCount = 500; // Начальное количество реагентов
 let draggedElement = null;
 let touchOffsetX = 0;
 let touchOffsetY = 0;
+
+const elements = {
+    pyro: 'pyro.png',
+    gydro: 'gydro.png',
+    electro: 'electro.png',
+    cryo: 'cryo.png',
+    anemo: 'anemo.png',
+    geo: 'geo.png'
+};
 
 function updateReagentCount() {
     const countElement = document.querySelector('.reagent-count');
@@ -8,23 +18,28 @@ function updateReagentCount() {
 }
 
 function placeElement(element) {
-    const elements = {
-        pyro: 'pyro.png',
-        gydro: 'gydro.png',
-        electro: 'electro.png',
-        cryo: 'cryo.png',
-        anemo: 'anemo.png',
-        geo: 'geo.png'
-    };
+    if (reagentCount <= 0) return; // Если реагентов нет, ничего не делаем
+
+    reagentCount -= 1; // Уменьшаем количество реагентов
+    updateReagentCount(); // Обновляем отображение
+
+    const emptyCells = document.querySelectorAll('.grid .cell:not(.special):empty');
+    if (emptyCells.length === 0) return; // Нет пустых клеток
+
+    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+    const selectedCell = emptyCells[randomIndex];
 
     const img = document.createElement('img');
     img.src = elements[element];
     img.className = 'element-icon';
     img.draggable = false; // Отключаем стандартное перетаскивание для мобильных устройств
+
+    // Назначаем обработчики событий для перетаскивания
     img.addEventListener('touchstart', handleTouchStart);
     img.addEventListener('touchmove', handleTouchMove);
     img.addEventListener('touchend', handleTouchEnd);
-    return img;
+
+    selectedCell.appendChild(img); // Добавляем элемент в сетку
 }
 
 function handleTouchStart(event) {
@@ -86,12 +101,13 @@ function handleTouchEnd(event) {
     document.body.style.overflow = 'auto';
 }
 
-// Назначаем обработчики событий для всех элементов
-function addTouchEventListeners(element) {
-    element.addEventListener('touchstart', handleTouchStart);
-    element.addEventListener('touchmove', handleTouchMove);
-    element.addEventListener('touchend', handleTouchEnd);
-}
+// Назначаем обработчики событий для базовых кнопок
+document.querySelector('.pyro-button').addEventListener('click', () => placeElement('pyro'));
+document.querySelector('.gydro-button').addEventListener('click', () => placeElement('gydro'));
+document.querySelector('.electro-button').addEventListener('click', () => placeElement('electro'));
+document.querySelector('.cryo-button').addEventListener('click', () => placeElement('cryo'));
+document.querySelector('.anemo-button').addEventListener('click', () => placeElement('anemo'));
+document.querySelector('.geo-button').addEventListener('click', () => placeElement('geo'));
 
-// Инициализация всех существующих элементов
-document.querySelectorAll('.grid .cell img').forEach(addTouchEventListeners);
+// Инициализация начального значения реагентов
+updateReagentCount();
