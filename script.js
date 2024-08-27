@@ -33,7 +33,7 @@ function placeElement(element) {
     const img = document.createElement('img');
     img.src = elements[element];
     img.className = 'element-icon';
-    img.draggable = true;
+    img.draggable = false; // Отключаем стандартное перетаскивание для мобильных устройств
     img.addEventListener('touchstart', handleTouchStart);
     img.addEventListener('touchmove', handleTouchMove);
     img.addEventListener('touchend', handleTouchEnd);
@@ -41,6 +41,7 @@ function placeElement(element) {
 }
 
 function handleTouchStart(event) {
+    event.preventDefault();
     const touch = event.targetTouches[0];
     draggedElement = event.target;
 
@@ -49,11 +50,13 @@ function handleTouchStart(event) {
     touchOffsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
 
     // Отключаем прокрутку страницы во время перетаскивания
-    document.body.classList.add('no-scroll');
+    document.body.style.overflow = 'hidden';
 }
 
 function handleTouchMove(event) {
     if (!draggedElement) return;
+
+    event.preventDefault(); // Предотвращаем прокрутку экрана во время перетаскивания
 
     const touch = event.targetTouches[0];
 
@@ -61,13 +64,14 @@ function handleTouchMove(event) {
     draggedElement.style.position = 'absolute';
     draggedElement.style.left = `${touch.clientX - touchOffsetX}px`;
     draggedElement.style.top = `${touch.clientY - touchOffsetY}px`;
+    draggedElement.style.pointerEvents = 'none'; // Игнорируем события для элемента во время перетаскивания
 }
 
 function handleTouchEnd(event) {
     if (!draggedElement) return;
 
-    // Получаем элемент под пальцем в момент завершения касания
-    const elementBelow = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
+    const touch = event.changedTouches[0];
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
     const dropTarget = elementBelow.closest('.cell');
 
     if (dropTarget && !dropTarget.querySelector('img')) {
@@ -79,10 +83,11 @@ function handleTouchEnd(event) {
         draggedElement.style.top = '';
     }
 
+    draggedElement.style.pointerEvents = 'auto'; // Включаем события для элемента после завершения перетаскивания
     draggedElement = null;
 
     // Включаем прокрутку страницы
-    document.body.classList.remove('no-scroll');
+    document.body.style.overflow = 'auto';
 }
 
 // Назначаем обработчики событий для существующих элементов
