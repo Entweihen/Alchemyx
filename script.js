@@ -38,17 +38,21 @@ function placeElement(element) {
 function dragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.src);
     event.dataTransfer.setData('source-id', event.target.parentNode.dataset.id);
+
+    // Предотвращаем стандартное поведение, такое как скролл
+    event.preventDefault();
 }
 
 document.querySelectorAll('.grid .cell:not(.special)').forEach((cell, index) => {
     cell.dataset.id = index; // Присваиваем каждой ячейке уникальный идентификатор
 
     cell.addEventListener('dragover', event => {
-        event.preventDefault();
+        event.preventDefault(); // Предотвращаем действие по умолчанию, чтобы позволить сброс элемента
     });
 
     cell.addEventListener('drop', event => {
-        event.preventDefault();
+        event.preventDefault(); // Предотвращаем действие по умолчанию
+
         const src = event.dataTransfer.getData('text/plain');
         const sourceId = event.dataTransfer.getData('source-id');
 
