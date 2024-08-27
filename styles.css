@@ -8,6 +8,10 @@ body {
     height: 100vh;
 }
 
+body.no-scroll {
+    overflow: hidden;
+}
+
 .reagent-counter {
     display: flex;
     justify-content: center;
