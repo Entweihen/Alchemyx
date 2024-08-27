@@ -12,6 +12,13 @@ body.no-scroll {
     overflow: hidden;
 }
 
+.element-icon {
+    position: absolute; /* Необходимо для работы перетаскивания */
+    width: 50px; /* Размер иконки */
+    height: 50px;
+    pointer-events: none; /* Сначала игнорируем события на иконке */
+}
+
 .reagent-counter {
     display: flex;
     justify-content: center;
