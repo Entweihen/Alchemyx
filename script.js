@@ -9,7 +9,8 @@ const elements = {
     electro: 'electro.png',
     cryo: 'cryo.png',
     anemo: 'anemo.png',
-    geo: 'geo.png'
+    geo: 'geo.png',
+    unknown: 'unknown.png' // Добавляем новый элемент
 };
 
 function updateReagentCount() {
@@ -93,14 +94,39 @@ function handleTouchEnd(event) {
 
     console.log('Drop target:', dropTarget);
 
-    if (dropTarget && !dropTarget.querySelector('img')) {
-        console.log('Dropping element into a new cell');
-        dropTarget.appendChild(draggedElement);
+    if (dropTarget) {
+        const targetElement = dropTarget.querySelector('img');
 
-        // Обновляем позицию элемента относительно новой ячейки
-        draggedElement.style.position = '';
-        draggedElement.style.left = '';
-        draggedElement.style.top = '';
+        if (targetElement && targetElement !== draggedElement) {
+            console.log('Mixing elements');
+            // Удаляем оба элемента
+            draggedElement.remove();
+            targetElement.remove();
+
+            // Уменьшаем количество реагентов на 1
+            reagentCount -= 1;
+            updateReagentCount();
+
+            // Создаем новый элемент с картинкой unknown.png
+            const newElement = document.createElement('img');
+            newElement.src = elements['unknown'];
+            newElement.className = 'element-icon';
+            newElement.style.position = 'absolute';
+            dropTarget.appendChild(newElement);
+
+            // Назначаем обработчики событий для нового элемента
+            newElement.addEventListener('touchstart', handleTouchStart);
+            newElement.addEventListener('touchmove', handleTouchMove);
+            newElement.addEventListener('touchend', handleTouchEnd);
+        } else if (!targetElement) {
+            console.log('Dropping element into a new cell');
+            dropTarget.appendChild(draggedElement);
+
+            // Обновляем позицию элемента относительно новой ячейки
+            draggedElement.style.position = '';
+            draggedElement.style.left = '';
+            draggedElement.style.top = '';
+        }
     } else {
         console.log('Returning element to original position');
         // Возвращаем элемент на исходное место, если ячейка занята или невалидна
@@ -118,10 +144,6 @@ document.querySelectorAll('.grid .cell img').forEach(img => {
     img.removeEventListener('touchstart', handleTouchStart);
     img.style.cursor = 'default'; // Изменяем курсор, чтобы показать, что элемент не перетаскивается
 });
-
-// Инициализация начального значения реагентов
-updateReagentCount();
-
 
 // Инициализация начального значения реагентов
 updateReagentCount();
