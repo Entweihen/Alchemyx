@@ -1,34 +1,16 @@
-const elements = {
-    pyro: 'pyro.png',
-    gydro: 'gydro.png',
-    electro: 'electro.png',
-    cryo: 'cryo.png',
-    anemo: 'anemo.png',
-    geo: 'geo.png'
-};
-
-let reagentCount = 500; // Начальное количество реагентов
 let draggedElement = null;
 let touchOffsetX = 0;
 let touchOffsetY = 0;
 
-function updateReagentCount() {
-    const countElement = document.querySelector('.reagent-count');
-    countElement.textContent = reagentCount;
-}
-
 function placeElement(element) {
-    if (reagentCount <= 0) return; // Если реагентов нет, ничего не делаем
-
-    reagentCount -= 1; // Уменьшаем количество реагентов
-    updateReagentCount(); // Обновляем отображение
-
-    const emptyCells = document.querySelectorAll('.grid .cell:not(.special):empty');
-    
-    if (emptyCells.length === 0) return; // Нет пустых клеток
-
-    const randomIndex = Math.floor(Math.random() * emptyCells.length);
-    const selectedCell = emptyCells[randomIndex];
+    const elements = {
+        pyro: 'pyro.png',
+        gydro: 'gydro.png',
+        electro: 'electro.png',
+        cryo: 'cryo.png',
+        anemo: 'anemo.png',
+        geo: 'geo.png'
+    };
 
     const img = document.createElement('img');
     img.src = elements[element];
@@ -37,7 +19,7 @@ function placeElement(element) {
     img.addEventListener('touchstart', handleTouchStart);
     img.addEventListener('touchmove', handleTouchMove);
     img.addEventListener('touchend', handleTouchEnd);
-    selectedCell.appendChild(img);
+    return img;
 }
 
 function handleTouchStart(event) {
@@ -51,6 +33,12 @@ function handleTouchStart(event) {
 
     // Отключаем прокрутку страницы во время перетаскивания
     document.body.style.overflow = 'hidden';
+
+    // Позиционирование элемента по координатам пальца
+    draggedElement.style.position = 'absolute';
+    draggedElement.style.left = `${touch.clientX - touchOffsetX}px`;
+    draggedElement.style.top = `${touch.clientY - touchOffsetY}px`;
+    draggedElement.style.pointerEvents = 'none'; // Игнорируем события для элемента во время перетаскивания
 }
 
 function handleTouchMove(event) {
@@ -60,11 +48,9 @@ function handleTouchMove(event) {
 
     const touch = event.targetTouches[0];
 
-    // Позиционирование элемента в соответствии с движением пальца
-    draggedElement.style.position = 'absolute';
+    // Обновление позиции элемента по мере перемещения пальца
     draggedElement.style.left = `${touch.clientX - touchOffsetX}px`;
     draggedElement.style.top = `${touch.clientY - touchOffsetY}px`;
-    draggedElement.style.pointerEvents = 'none'; // Игнорируем события для элемента во время перетаскивания
 }
 
 function handleTouchEnd(event) {
@@ -75,15 +61,20 @@ function handleTouchEnd(event) {
     const dropTarget = elementBelow.closest('.cell');
 
     if (dropTarget && !dropTarget.querySelector('img')) {
-        dropTarget.appendChild(draggedElement);
-    } else {
-        // Если нет подходящей ячейки, возвращаем элемент на его исходную позицию
+        // Если ячейка пустая, вставляем туда элемент
         draggedElement.style.position = '';
         draggedElement.style.left = '';
         draggedElement.style.top = '';
+        draggedElement.style.pointerEvents = 'auto';
+        dropTarget.appendChild(draggedElement);
+    } else {
+        // Возвращаем элемент на исходное место, если ячейка занята или невалидна
+        draggedElement.style.position = '';
+        draggedElement.style.left = '';
+        draggedElement.style.top = '';
+        draggedElement.style.pointerEvents = 'auto';
     }
 
-    draggedElement.style.pointerEvents = 'auto'; // Включаем события для элемента после завершения перетаскивания
     draggedElement = null;
 
     // Включаем прокрутку страницы
@@ -96,6 +87,3 @@ document.querySelectorAll('.grid .cell img').forEach(img => {
     img.addEventListener('touchmove', handleTouchMove);
     img.addEventListener('touchend', handleTouchEnd);
 });
-
-// Инициализация начального значения реагентов
-updateReagentCount();
