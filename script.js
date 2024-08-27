@@ -35,6 +35,16 @@ function placeElement(element) {
     selectedCell.appendChild(img);
 }
 
+function dragEnd(event) {
+    // Включаем прокрутку страницы
+    document.body.classList.remove('no-scroll');
+}
+
+document.querySelectorAll('.grid .cell img').forEach(img => {
+    img.addEventListener('dragstart', dragStart);
+    img.addEventListener('dragend', dragEnd); // Обработчик завершения перетаскивания
+});
+
 function dragStart(event) {
     event.dataTransfer.setData('text/plain', event.target.src);
     event.dataTransfer.setData('source-id', event.target.parentNode.dataset.id);
