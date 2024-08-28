@@ -22,6 +22,7 @@ function updateReagentCount() {
 }
 
 function placeElement(element) {
+    console.log(`Placing element: ${element}`);
     if (reagentCount <= 0) return; // Если реагентов нет, ничего не делаем
 
     reagentCount -= 1; // Уменьшаем количество реагентов
@@ -47,6 +48,7 @@ function placeElement(element) {
 }
 
 function handleTouchStart(event) {
+    console.log('Touch start');
     const touch = event.targetTouches[0];
     draggedElement = event.target;
 
@@ -61,6 +63,7 @@ function handleTouchStart(event) {
 function handleTouchMove(event) {
     if (!draggedElement) return;
 
+    console.log('Touch move');
     const touch = event.targetTouches[0];
 
     // Обновление позиции элемента по мере перемещения пальца
@@ -71,6 +74,7 @@ function handleTouchMove(event) {
 function handleTouchEnd(event) {
     if (!draggedElement) return;
 
+    console.log('Touch end');
     const touch = event.changedTouches[0];
 
     // Определяем все ячейки
@@ -89,11 +93,13 @@ function handleTouchEnd(event) {
         }
     });
 
+    console.log('Drop target:', dropTarget);
 
     if (dropTarget) {
         const targetElement = dropTarget.querySelector('img');
 
         if (targetElement && targetElement !== draggedElement) {
+            console.log('Mixing elements');
             // Удаляем оба элемента
             draggedElement.remove();
             targetElement.remove();
@@ -114,11 +120,12 @@ function handleTouchEnd(event) {
             newElement.addEventListener('touchmove', handleTouchMove);
             newElement.addEventListener('touchend', handleTouchEnd);
 
-            // 50% шанс на создание бутылёка с реагентом
+            // 50% шанс на создание бутылёка с реагентом в соседней ячейке
             if (Math.random() < 0.5) {
-                createEnergyBottle();
+                createEnergyBottle(dropTarget);
             }
         } else if (!targetElement) {
+            console.log('Dropping element into a new cell');
             dropTarget.appendChild(draggedElement);
 
             // Обновляем позицию элемента относительно новой ячейки
@@ -127,6 +134,7 @@ function handleTouchEnd(event) {
             draggedElement.style.top = '';
         }
     } else {
+        console.log('Returning element to original position');
         // Возвращаем элемент на исходное место, если ячейка занята или невалидна
         draggedElement.style.position = '';
         draggedElement.style.left = '';
@@ -137,22 +145,25 @@ function handleTouchEnd(event) {
     draggedElement = null;
 }
 
-function createEnergyBottle() {
-    console.log('Attempting to create energy bottle with 50% chance');
+function createEnergyBottle(centralCell) {
+    console.log('Attempting to create energy bottle in neighboring cells');
 
-    // Ищем свободные ячейки
-    const emptyCells = document.querySelectorAll('.grid .cell:not(.special):empty');
-    if (emptyCells.length === 0) return; // Нет свободных ячеек
+    // Получаем все возможные соседние ячейки
+    const neighbors = getNeighborCells(centralCell);
 
-    // Выбираем случайную ячейку
-    const randomIndex = Math.floor(Math.random() * emptyCells.length);
-    const selectedCell = emptyCells[randomIndex];
+    if (neighbors.length === 0) return; // Нет доступных соседних ячеек
+
+    // Выбираем случайную соседнюю ячейку
+    const randomIndex = Math.floor(Math.random() * neighbors.length);
+    const selectedCell = neighbors[randomIndex];
 
     // Создаем бутылёк с реагентом
     const bottle = document.createElement('img');
     bottle.src = elements['energy'];
     bottle.className = 'element-icon';
     bottle.style.position = 'absolute';
+    bottle.style.width = '60px'; // Увеличиваем размер картинки
+    bottle.style.height = '60px'; // Увеличиваем размер картинки
     selectedCell.appendChild(bottle);
 
     console.log('Energy bottle created in cell:', selectedCell);
@@ -172,6 +183,26 @@ function createEnergyBottle() {
             console.log('Energy bottle tapped twice, adding reagents');
         }
     });
+}
+
+function getNeighborCells(cell) {
+    const allCells = Array.from(document.querySelectorAll('.grid .cell'));
+    const neighbors = [];
+    const cellRect = cell.getBoundingClientRect();
+
+    allCells.forEach(otherCell => {
+        const otherRect = otherCell.getBoundingClientRect();
+        const isNeighbor =
+            Math.abs(cellRect.left - otherRect.left) <= cellRect.width &&
+            Math.abs(cellRect.top - otherRect.top) <= cellRect.height;
+
+        // Проверяем, что ячейка соседняя и пустая
+        if (isNeighbor && !otherCell.querySelector('img') && otherCell !== cell) {
+            neighbors.push(otherCell);
+        }
+    });
+
+    return neighbors;
 }
 
 // Удаляем обработчики событий для базовых элементов
