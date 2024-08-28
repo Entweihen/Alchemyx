@@ -52,7 +52,7 @@ function handleTouchStart(event) {
 
     // Определение смещения нажатия от края элемента
     offsetX = touch.clientX - draggedElement.getBoundingClientRect().left;
-    offsetY = touch.clientY - draggedElement.getBoundingClientRect().top;
+    offsetY = touch.clientX - draggedElement.getBoundingClientRect().top;
 
     // Перемещаем элемент на верхний слой
     draggedElement.style.zIndex = 1000;
