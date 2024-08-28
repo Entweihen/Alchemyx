@@ -22,7 +22,6 @@ function updateReagentCount() {
 }
 
 function placeElement(element) {
-    console.log(`Placing element: ${element}`);
     if (reagentCount <= 0) return; // Если реагентов нет, ничего не делаем
 
     reagentCount -= 1; // Уменьшаем количество реагентов
@@ -48,7 +47,6 @@ function placeElement(element) {
 }
 
 function handleTouchStart(event) {
-    console.log('Touch start');
     const touch = event.targetTouches[0];
     draggedElement = event.target;
 
@@ -63,7 +61,6 @@ function handleTouchStart(event) {
 function handleTouchMove(event) {
     if (!draggedElement) return;
 
-    console.log('Touch move');
     const touch = event.targetTouches[0];
 
     // Обновление позиции элемента по мере перемещения пальца
@@ -74,7 +71,6 @@ function handleTouchMove(event) {
 function handleTouchEnd(event) {
     if (!draggedElement) return;
 
-    console.log('Touch end');
     const touch = event.changedTouches[0];
 
     // Определяем все ячейки
@@ -93,13 +89,11 @@ function handleTouchEnd(event) {
         }
     });
 
-    console.log('Drop target:', dropTarget);
 
     if (dropTarget) {
         const targetElement = dropTarget.querySelector('img');
 
         if (targetElement && targetElement !== draggedElement) {
-            console.log('Mixing elements');
             // Удаляем оба элемента
             draggedElement.remove();
             targetElement.remove();
@@ -120,12 +114,11 @@ function handleTouchEnd(event) {
             newElement.addEventListener('touchmove', handleTouchMove);
             newElement.addEventListener('touchend', handleTouchEnd);
 
-            // 1% шанс на создание бутылёка с реагентом
-            if (Math.random() < 0.1) {
+            // 50% шанс на создание бутылёка с реагентом
+            if (Math.random() < 0.5) {
                 createEnergyBottle();
             }
         } else if (!targetElement) {
-            console.log('Dropping element into a new cell');
             dropTarget.appendChild(draggedElement);
 
             // Обновляем позицию элемента относительно новой ячейки
@@ -134,7 +127,6 @@ function handleTouchEnd(event) {
             draggedElement.style.top = '';
         }
     } else {
-        console.log('Returning element to original position');
         // Возвращаем элемент на исходное место, если ячейка занята или невалидна
         draggedElement.style.position = '';
         draggedElement.style.left = '';
@@ -146,7 +138,7 @@ function handleTouchEnd(event) {
 }
 
 function createEnergyBottle() {
-    console.log('Creating energy bottle with 1% chance');
+    console.log('Attempting to create energy bottle with 50% chance');
 
     // Ищем свободные ячейки
     const emptyCells = document.querySelectorAll('.grid .cell:not(.special):empty');
@@ -163,6 +155,8 @@ function createEnergyBottle() {
     bottle.style.position = 'absolute';
     selectedCell.appendChild(bottle);
 
+    console.log('Energy bottle created in cell:', selectedCell);
+
     // Обработчик двойного тапа для бутылёка
     let tapCount = 0;
     bottle.addEventListener('touchstart', (event) => {
@@ -175,6 +169,7 @@ function createEnergyBottle() {
             reagentCount += 10;
             updateReagentCount();
             bottle.remove(); // Удаляем бутылёк
+            console.log('Energy bottle tapped twice, adding reagents');
         }
     });
 }
