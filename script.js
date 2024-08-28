@@ -10,7 +10,8 @@ const elements = {
     cryo: 'cryo.png',
     anemo: 'anemo.png',
     geo: 'geo.png',
-    unknown: 'unknown.png' // Добавляем новый элемент
+    unknown: 'unknown.png', // Элемент, который появляется после смешивания
+    energy: 'Energy.png' // Элемент бутылёка с реагентом
 };
 
 function updateReagentCount() {
@@ -118,6 +119,11 @@ function handleTouchEnd(event) {
             newElement.addEventListener('touchstart', handleTouchStart);
             newElement.addEventListener('touchmove', handleTouchMove);
             newElement.addEventListener('touchend', handleTouchEnd);
+
+            // 1% шанс на создание бутылёка с реагентом
+            if (Math.random() < 0.01) {
+                createEnergyBottle();
+            }
         } else if (!targetElement) {
             console.log('Dropping element into a new cell');
             dropTarget.appendChild(draggedElement);
@@ -137,6 +143,40 @@ function handleTouchEnd(event) {
 
     draggedElement.style.zIndex = ''; // Сбрасываем z-index
     draggedElement = null;
+}
+
+function createEnergyBottle() {
+    console.log('Creating energy bottle with 1% chance');
+
+    // Ищем свободные ячейки
+    const emptyCells = document.querySelectorAll('.grid .cell:not(.special):empty');
+    if (emptyCells.length === 0) return; // Нет свободных ячеек
+
+    // Выбираем случайную ячейку
+    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+    const selectedCell = emptyCells[randomIndex];
+
+    // Создаем бутылёк с реагентом
+    const bottle = document.createElement('img');
+    bottle.src = elements['energy'];
+    bottle.className = 'element-icon';
+    bottle.style.position = 'absolute';
+    selectedCell.appendChild(bottle);
+
+    // Обработчик двойного тапа для бутылёка
+    let tapCount = 0;
+    bottle.addEventListener('touchstart', (event) => {
+        tapCount++;
+        setTimeout(() => {
+            tapCount = 0; // Сброс счетчика через 300 мс
+        }, 300);
+
+        if (tapCount === 2) { // Если двойной тап
+            reagentCount += 10;
+            updateReagentCount();
+            bottle.remove(); // Удаляем бутылёк
+        }
+    });
 }
 
 // Удаляем обработчики событий для базовых элементов
